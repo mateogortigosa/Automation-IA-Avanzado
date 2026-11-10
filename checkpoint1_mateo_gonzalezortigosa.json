@@ -1,0 +1,309 @@
+{
+  "name": "My workflow 2",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "responseMode": "responseNodes"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.5,
+      "position": [
+        -112,
+        -48
+      ],
+      "id": "1d848bfa-6c57-4bfe-8e6e-250abaea3e59",
+      "name": "When chat message received",
+      "webhookId": "9976fd9a-c7c7-462b-9256-634ab25a8ffa"
+    },
+    {
+      "parameters": {
+        "hasOutputParser": true,
+        "options": {
+          "systemMessage": "[ROL] \n\nEres un Asistente Virtual de Recursos Humanos. Tu tono es profesional, conciso y directo. Tu función es resolver consultas sobre horas extras y vacaciones de los empleados. \n\n[ÁMBITO Y RESTRICCIONES] \n\n- Tienes estrictamente prohibido modificar datos de la planilla sin autorización previa.\n- Queda prohibido inventar información, asumir valores o buscar en fuentes externas fuera de la base de datos \"Informacion N8N\". \n\n[OBJETIVO]\n\nBrindar respuestas rápidas y precisas sobre el saldo de horas extras y días de vacaciones disponibles de cada empleado para agilizar la atención interna y reducir la carga operativa del equipo de RRHH. \n\n\n[REGLAS DE USO DE HERRAMIENTAS] \n\n1. Consulta de saldo (Horas extras / Vacaciones): Ante cualquier pregunta sobre disponibilidad de días u horas extras, debes activar la herramienta de búsqueda en Google Sheets antes de elaborar tu respuesta. \n\n2. Solicitud de nuevas vacaciones: \n2.a) Activa la herramienta de búsqueda para verificar los días de vacaciones disponibles del usuario.\n2.b) Si los días solicitados superan el saldo disponible, responde inmediatamente indicando que no cuenta con esa cantidad de días y detén el proceso. \n2.c) Si los días solicitados están dentro del saldo disponible, informa al usuario que la solicitud ha sido registrada y enviada para la aprobación de su líder directo. \n2.d) Una vez obtenida la confirmación/aprobación de la solicitud, activa la herramienta de registro en Google Sheets para asentar el pedido. \n\n3. Antes de procesar cualquier consulta, si no conoces el nombre completo del usuario, pedíselo. Mantenelo durante toda la conversación.\n\n4. Formato de salida: tu respuesta final debe respetar siempre el formato estructurado.\n4.1) es_solicitud es true solo cuando se cumplen TODAS estas condiciones a la vez: (1) conoces el nombre completo del usuario, (2) pidió vacaciones nuevas, (3) tienes la cantidad de días, (4) tienes fecha_desde y fecha_hasta confirmadas por el usuario, y (5) los días solicitados están dentro de su saldo.\n4.2) Si falta cualquiera de esos datos, es_solicitud es false. Pedí el dato faltante en respuesta y no digas que la solicitud fue enviada.\n4.3) Solo cuando es_solicitud sea true, en respuesta informá que la solicitud fue registrada y enviada a su líder.\n\n[PROTOCOLO DE ESCALAMIENTO Y CONTINGENCIA] \n\n- Si la búsqueda no devuelve ningún registro para el usuario o los datos son ambiguos, responde: \"No encontré tus datos en el registro actual de Recursos Humanos. Voy a derivar tu consulta a un analista de RRHH.\" \n- Si el usuario realiza un reclamo legal, solicita una licencia especial o realiza una solicitud fuera del alcance, responde: \"Esta solicitud requiere gestión por parte del equipo de RRHH. Tu caso ha sido derivado.\"",
+          "maxIterations": 5,
+          "forceToolCallOnFirstIteration": false
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        176,
+        -48
+      ],
+      "id": "91b6861c-b885-4a6a-a3c9-8762b8e5d227",
+      "name": "AI Agent",
+      "retryOnFail": true,
+      "maxTries": 5,
+      "alwaysOutputData": false
+    },
+    {
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "value": "claude-sonnet-5-5",
+          "mode": "list",
+          "cachedResultName": "Claude Sonnet 5.5"
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.6,
+      "position": [
+        128,
+        192
+      ],
+      "id": "72145000-20ee-4afe-85ed-91081b9f1f93",
+      "name": "Anthropic Chat Model",
+      "credentials": {
+        "anthropicApi": {
+          "id": null,
+          "name": "",
+          "__aiGatewayManaged": true
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1GKLZlev9Cuye4n9WdgpyAR3ltlml82weanBNQyYoo3M",
+          "mode": "list",
+          "cachedResultName": "Informacion N8N",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GKLZlev9Cuye4n9WdgpyAR3ltlml82weanBNQyYoo3M/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Hoja 1",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1GKLZlev9Cuye4n9WdgpyAR3ltlml82weanBNQyYoo3M/edit#gid=0"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTool",
+      "typeVersion": 4.7,
+      "position": [
+        384,
+        192
+      ],
+      "id": "ce6c8b7e-51b4-4fe5-b9a4-9b15b0ea81a2",
+      "name": "Get row(s) in sheet in Google Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "RiDB2xDBG5G78OgL",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 10
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.4,
+      "position": [
+        256,
+        192
+      ],
+      "id": "17d95b22-647b-4dbd-ac8b-f62adf3ecad9",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n  \"nombre\": \"Juan Pérez\",\n  \"es_solicitud\": true,\n  \"dias_solicitados\": 5,\n  \"fecha_desde\": \"2026-12-01\",\n  \"fecha_hasta\": \"2026-12-05\",\n  \"saldo_disponible\": 12,\n  \"respuesta\": \"Tu solicitud fue registrada y enviada a tu líder para su aprobación.\"\n}"
+      },
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.3,
+      "position": [
+        480,
+        304
+      ],
+      "id": "696db9c2-9df3-47ff-8e1e-fd213775c2fe",
+      "name": "Structured Output Parser"
+    },
+    {
+      "parameters": {
+        "message": "={{ $json.output.respuesta }}",
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.chat",
+      "typeVersion": 1.3,
+      "position": [
+        544,
+        -32
+      ],
+      "id": "277eb780-7626-4abc-8cbc-792ba9436ac7",
+      "name": "Chat",
+      "webhookId": "29727835-e226-4926-a416-c109f69cf292"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 4
+          },
+          "conditions": [
+            {
+              "id": "b70f00f3-edc9-43c5-8e0f-261923c0ceee",
+              "leftValue": "={{ $('AI Agent').item.json.output.es_solicitud }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.4,
+      "position": [
+        768,
+        -32
+      ],
+      "id": "3dcdc4f5-482c-44e8-ba7b-10746c9f09b0",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "operation": "sendAndWait",
+        "user": {
+          "__rl": true,
+          "value": "U0CGM2RAUE6",
+          "mode": "list",
+          "cachedResultName": "Mateo Gonzalez Ortigosa (@mateogortigosa)"
+        },
+        "message": "=Se necesita aprobación de la siguiente solicitud de vacaciones:\n\n*Solicitante:* {{ $('AI Agent').item.json.output.nombre }}\n*Días solicitados:* {{ $('AI Agent').item.json.output.dias_solicitados }}\n*Desde:* {{ $('AI Agent').item.json.output.fecha_desde }}\n*Hasta:* {{ $('AI Agent').item.json.output.fecha_hasta }}\n*Saldo disponible:* {{ $('AI Agent').item.json.output.saldo_disponible }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.7,
+      "position": [
+        992,
+        -64
+      ],
+      "id": "181558cc-652c-4f3e-8f68-9e762a656b48",
+      "name": "Send message and wait for response",
+      "webhookId": "86e4882a-5d08-441f-9dd6-86be044259ea",
+      "credentials": {
+        "slackOAuth2Api": {
+          "id": "GUAF6n9O4NVFIv2i",
+          "name": "Slack account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Anthropic Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet in Google Sheets": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Chat",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chat": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "ee279841-f49c-45a9-b9db-fbb65ae3475f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "1bfe5e03b4829189ea8f35de225b93cc6abcb7c3d4328bc88848c22b9ece1327"
+  },
+  "nodeGroups": [],
+  "id": "4dwoRutvCWKl3bnT",
+  "tags": []
+}
